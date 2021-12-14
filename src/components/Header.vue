@@ -5,9 +5,12 @@
     theme="dark"
     class="header_menu"
     :router="true"
-    default-active="/"
+    :default-active="current"
   >
-    <div id="title">
+    <div
+      id="title"
+      @click="logout(router)"
+    >
       <span>NiuWaBI</span>
     </div>
     <el-menu-item index="/">
@@ -31,6 +34,12 @@
       </el-menu-item>
     </template>
     <template v-else>
+      <el-menu-item index="/workspace">
+        <el-icon>
+          <list />
+        </el-icon>
+        <span>工作区</span>
+      </el-menu-item>
       <el-menu-item index="/user">
         <el-icon>
           <user-filled />
@@ -42,11 +51,21 @@
 </template>
 
 <script setup lang="ts">
-import { HomeFilled, UserFilled, Stamp } from '@element-plus/icons'
-import { computed } from 'vue'
-import { isAuthenticated } from '../utils/user'
+import { HomeFilled, UserFilled, Stamp, List } from '@element-plus/icons'
+import { computed, inject } from 'vue'
+import { useRouter } from 'vue-router'
+import { logout, Auth } from '../utils/user'
 
-const authenticated = computed(() => isAuthenticated())
+const auth = inject<Auth>('auth') as Auth
+
+const authenticated = computed(() => {
+  return auth.user !== null
+})
+
+const router = useRouter()
+
+const current = computed(() => router.currentRoute.value.path)
+
 </script>
 
 <style scoped>

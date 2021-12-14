@@ -5,16 +5,46 @@
         <span>登录</span>
       </div>
     </template>
-    <el-form ref="formRef" :model="form" label-width="auto" label-position="right">
-      <el-form-item label="用户名" prop="username">
-        <el-input v-model="form.username" placeholder="Please input username" />
+    <el-form
+      ref="formRef"
+      :model="form"
+      label-width="auto"
+      label-position="right"
+    >
+      <el-form-item
+        label="用户名"
+        prop="username"
+        :required="true"
+      >
+        <el-input
+          v-model="form.username"
+          placeholder="Please input username"
+        />
       </el-form-item>
-      <el-form-item label="密码" prop="password">
-        <el-input v-model="form.password" placeholder="Please input password" show-password />
+      <el-form-item
+        label="密码"
+        prop="password"
+        :required="true"
+      >
+        <el-input
+          v-model="form.password"
+          placeholder="Please input password"
+          show-password
+        />
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="submit()">登录</el-button>
-        <el-button type="warning" @click="reset()">重置</el-button>
+        <el-button
+          type="primary"
+          @click="submit()"
+        >
+          登录
+        </el-button>
+        <el-button
+          type="warning"
+          @click="reset()"
+        >
+          重置
+        </el-button>
       </el-form-item>
     </el-form>
   </el-card>
@@ -24,7 +54,6 @@
 import { ElForm, ElMessage } from 'element-plus'
 import { reactive, ref } from 'vue'
 import { login } from '../utils/user'
-import 'element-plus/es/components/form/style/css'
 import { useRouter } from 'vue-router'
 
 const formRef = ref<InstanceType<typeof ElForm>>()

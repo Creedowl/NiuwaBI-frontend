@@ -12,6 +12,14 @@ const routes = [
   {
     path: '/login',
     component: importComponent('Login')
+  },
+  {
+    path: '/report',
+    component: importComponent('Report')
+  },
+  {
+    path: '/workspace',
+    component: importComponent('/workspace/Workspaces')
   }
 ]
 
