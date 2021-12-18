@@ -1,8 +1,11 @@
 <template>
-  <div id="workspaces">
+  <div id="reports">
     <el-breadcrumb separator="/">
       <el-breadcrumb-item :to="'/workspace'">
         工作区列表
+      </el-breadcrumb-item>
+      <el-breadcrumb-item :to="`/workspace/${workspaceID}`">
+        {{ workspaceID }}
       </el-breadcrumb-item>
     </el-breadcrumb>
     <div id="operations">
@@ -25,8 +28,13 @@
       />
       <el-table-column
         prop="name"
-        label="工作区"
+        label="报表"
         width="300"
+      />
+      <el-table-column
+        prop="type"
+        label="类型"
+        width="100"
       />
       <el-table-column label="操作">
         <template #default="scope">
@@ -46,7 +54,7 @@
           </el-button>
 
           <el-popconfirm
-            title="确认要删除这个工作区吗？"
+            title="确认要删除这个报表吗？"
             @confirm="handleDelete(scope.$index, scope.row)"
           >
             <template #reference>
@@ -70,22 +78,16 @@
         @current-change="handleCurrentChange"
       />
     </div>
-    <workspace-config-dialog
-      v-if="visible"
-      v-model:visible="visible"
-      v-model:config="config"
-      @save="createWorkspace"
-    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ElMessage } from 'element-plus'
 import { onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import api, { WorkspaceConfig } from '../../api'
-import WorkspaceConfigDialog from '../../components/WorkspaceConfigDialog.vue'
+import { useRoute, useRouter } from 'vue-router'
+import api, { ReportConfig } from '../../api'
 
+const workspaceID = parseInt(useRoute().params.id as string)
 const tableData = ref([])
 const loading = ref(true)
 const pagination = ref({
@@ -94,13 +96,13 @@ const pagination = ref({
   total: 0
 })
 const visible = ref(false)
-const config = ref<WorkspaceConfig>()
+const config = ref<ReportConfig>()
 
 const router = useRouter()
 
 const getData = async () => {
   try {
-    const resp = (await api.workspace.getAll(pagination.value)).data
+    const resp = (await api.report.getAll(pagination.value, workspaceID)).data
     tableData.value = resp.data.data
     if (pagination.value.total === 0) {
       pagination.value.total = resp.data.total
@@ -113,18 +115,18 @@ const getData = async () => {
 
 onMounted(getData)
 
-function handleView (index: any, row: WorkspaceConfig) {
+function handleView (index: any, row: ReportConfig) {
   console.log(index, row)
-  router.push(`/workspace/${row.id}`)
+  router.push(`/report/${row.id}`)
 }
 
-function handleEdit (index: any, row: WorkspaceConfig) {
+function handleEdit (index: any, row: ReportConfig) {
   console.log(index, row)
   config.value = row
   visible.value = true
 }
 
-async function handleDelete (index: any, row: WorkspaceConfig) {
+async function handleDelete (index: any, row: ReportConfig) {
   console.log(index, row)
   try {
     await api.workspace.delete(row.id)
@@ -152,7 +154,7 @@ function create () {
   visible.value = true
 }
 
-async function createWorkspace (c:WorkspaceConfig) {
+async function createReport (c:ReportConfig) {
   try {
     if (c.id === 0) {
       await api.workspace.create(c)
@@ -171,7 +173,7 @@ async function createWorkspace (c:WorkspaceConfig) {
 </script>
 
 <style scoped>
-#workspaces {
+#reports {
   width: 80%;
 }
 

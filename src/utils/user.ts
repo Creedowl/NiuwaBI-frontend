@@ -40,12 +40,8 @@ export function initAuth () {
   const a = {
     // login,
     install: function (app: App) {
-      console.log('uuu', auth)
       app.config.globalProperties.$auth = this
       app.provide('auth', auth)
-    },
-    test: () => {
-      console.log(auth)
     }
   }
   return a

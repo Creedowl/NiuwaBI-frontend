@@ -22,6 +22,43 @@ export interface WorkspaceConfig {
   }
 }
 
+export interface Pos {
+  x: number
+  y: number
+  w: number
+  h: number
+  i: string
+}
+
+export interface Kv {
+  key: string
+  label: string
+}
+
+export interface TableConfig {
+  type: string
+  sql: string
+  name: string
+  pos: Pos
+  kv: Kv[]
+}
+
+export interface ReportConfig {
+  id: number
+  workspace_id: number
+  name: string
+  type: string
+  owner: number
+  config: {
+    charts: TableConfig[]
+  }
+}
+
+export interface ReportData {
+  chart: TableConfig
+  data: object[]
+}
+
 const api = {
   ping (name: string) {
     return axios.get('/ping', { params: { name } })
@@ -44,6 +81,20 @@ const api = {
     },
     delete (id: number) {
       return axios.post('/workspace/remove', { id })
+    }
+  },
+  report: {
+    getAll (pagination: Pagination, workspaceID: number) {
+      return axios.post('/report/get_all', { ...pagination, workspace_id: workspaceID })
+    },
+    get (id: number) {
+      return axios.post('/report/get', { id })
+    },
+    execute (id: number) {
+      return axios.post('/report/execute', { id })
+    },
+    update (config: ReportConfig) {
+      return axios.post('/report/update', config)
     }
   }
 }

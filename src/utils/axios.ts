@@ -1,7 +1,7 @@
 import axios from 'axios'
-import { getToken } from './user'
+import { getToken, logout } from './user'
 import { ElMessage } from 'element-plus'
-// import router from '../router'
+import router from '../router'
 
 const instance = axios.create()
 
@@ -28,13 +28,18 @@ instance.interceptors.response.use(res => {
   }
   return res
 }, err => {
-  ElMessage({
-    message: err.response.data.message,
-    type: 'error'
-  })
-  // if (err.response.status === 416) {
-  //   router.push('/')
-  // }
+  if (err.response.status === 401) {
+    ElMessage({
+      message: '登录过期，请重新登录',
+      type: 'error'
+    })
+    logout(router)
+  } else {
+    ElMessage({
+      message: err.response.data.message,
+      type: 'error'
+    })
+  }
   return Promise.reject(err)
 })
 
