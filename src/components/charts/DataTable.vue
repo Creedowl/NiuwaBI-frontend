@@ -13,6 +13,13 @@
           <el-button
             type="primary"
             plain
+            @click="exportToJson"
+          >
+            导出(JSON)
+          </el-button>
+          <el-button
+            type="primary"
+            plain
             @click="exportToCsv"
           >
             导出(CSV)
@@ -202,7 +209,10 @@ function removeKv (item: Kv) {
     form.value.kv.splice(index, 1)
   }
 }
-
+function exportToJson () {
+  const jsonContent = JSON.stringify(props.data.data)
+  SaveTextToFile(jsonContent, props.config.name + '.json')
+}
 function exportToXlsx () {
   const wb = XLSX.utils.book_new()
   const ws : XLSX.WorkSheet = XLSX.utils.json_to_sheet([])
@@ -267,10 +277,10 @@ function exportToCsv () {
       })
     csvContent += '\n'
   }
-  dumpToCSVFile(csvContent, props.config.name + '.csv')
+  SaveTextToFile(csvContent, props.config.name + '.csv')
 }
 
-function dumpToCSVFile (content: string, filename: string) {
+function SaveTextToFile (content: string, filename: string) {
   const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' })
   if (navigator.msSaveBlob) {
     // In case of IE 10+

@@ -5,12 +5,25 @@ import { logout } from '../utils/user'
 const msg = ref('2333')
 
 // defineProps<{ msg: string }>()
-
+const initial = false
 const count = ref(0)
+const features = [
+  '万能数据库配置',
+  '工作区管理',
+  '自定义查询',
+  '报表管理',
+  '报表导出'
+]
+const workflows = [
+  '创建账号',
+  '新建工作区，配置数据库连接，测试数据库能否联通',
+  '新建报表，输入查询的语句以及',
+  '管理报表，导出需要的数据'
+]
 </script>
 
 <template>
-  <div>
+  <div v-if="initial">
     <h1>{{ msg }}</h1>
 
     <p>
@@ -50,6 +63,36 @@ const count = ref(0)
       <code>components/HelloWorld.vue</code> to test hot module replacement.
     </p>
   </div>
+  <div
+    v-else
+  >
+    <h1> 牛蛙BI</h1>
+    <p class="left">
+      欢迎使用，牛蛙BI，使用本工具来一键生成报表
+    </p>
+    <h2 class="left">
+      功能
+    </h2>
+    <ul class="left">
+      <li
+        v-for="feature in features"
+        :key="feature"
+      >
+        {{ feature }}
+      </li>
+    </ul>
+    <h2 class="left">
+      工作流
+    </h2>
+    <ol class="left">
+      <li
+        v-for="workflow in workflows"
+        :key="workflow"
+      >
+        {{ workflow }}
+      </li>
+    </ol>
+  </div>
 </template>
 
 <style scoped>
@@ -67,5 +110,9 @@ code {
   padding: 2px 4px;
   border-radius: 4px;
   color: #304455;
+}
+
+.left{
+  text-align: left;
 }
 </style>
