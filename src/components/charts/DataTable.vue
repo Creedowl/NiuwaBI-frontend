@@ -9,13 +9,22 @@
         >
           编辑
         </el-button>
-        <el-button
-          v-else
-          type="primary"
-          plain
-        >
-          导出
-        </el-button>
+        <div v-else>
+          <el-button
+            type="primary"
+            plain
+            @click="exportToCsv"
+          >
+            导出(CSV)
+          </el-button>
+          <el-button
+            type="primary"
+            plain
+            @click="exportToXlsx"
+          >
+            导出(XLSX)
+          </el-button>
+        </div>
       </div>
     </template>
     <el-table
@@ -58,9 +67,7 @@
         prop="name"
         required
       >
-        <el-input
-          v-model="form.name"
-        />
+        <el-input v-model="form.name" />
       </el-form-item>
       <el-form-item
         label="Sql"
@@ -107,18 +114,14 @@
             prop="key"
             required
           >
-            <el-input
-              v-model="kv.key"
-            />
+            <el-input v-model="kv.key" />
           </el-form-item>
           <el-form-item
             label="标签"
             prop="label"
             required
           >
-            <el-input
-              v-model="kv.label"
-            />
+            <el-input v-model="kv.label" />
           </el-form-item>
         </el-form>
         <el-button
@@ -136,9 +139,7 @@
           添加
         </el-button>
         <template #reference>
-          <el-button
-            type="primary"
-          >
+          <el-button type="primary">
             新增
           </el-button>
         </template>
@@ -149,13 +150,16 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
-import { Close } from '@element-plus/icons'
+import { Close, Eleme } from '@element-plus/icons'
 import { Kv, ReportData, TableConfig } from '../../api'
+import { ElMessage } from 'element-plus'
+import { SetOperationEnum } from 'element-plus/es/components/tree-v2/src/virtual-tree'
+import * as XLSX from 'xlsx'
 
 const props = defineProps<{
-  config: TableConfig
-  data: ReportData
-  setting: any
+  config: TableConfig;
+  data: ReportData;
+  setting: any;
 }>()
 
 const form = ref(props.config)
@@ -196,6 +200,93 @@ function removeKv (item: Kv) {
   if (index !== -1) {
     delete labels.value[item.key]
     form.value.kv.splice(index, 1)
+  }
+}
+
+function exportToXlsx () {
+  const wb = XLSX.utils.book_new()
+  const ws : XLSX.WorkSheet = XLSX.utils.json_to_sheet([])
+  const heading : string[] = []
+  for (const key in props.data.data[0]) {
+    let find = false
+    props.config.kv.forEach(kv => {
+      if (key === kv.key && !find) {
+        heading.push(kv.label)
+        find = true
+      }
+    })
+    if (!find) {
+      heading.push(key)
+    }
+  }
+  const headingRow = [heading]
+  console.log(headingRow)
+  XLSX.utils.sheet_add_aoa(ws, headingRow)
+  XLSX.utils.sheet_add_json(ws, props.data.data, { origin: 'A2', skipHeader: true })
+  XLSX.utils.book_append_sheet(wb, ws, props.config.name)
+  XLSX.writeFile(wb, props.config.name + '.xlsx', {
+    Props: {
+      Author: 'NiuWaBI'
+    }
+  })
+}
+
+function exportToCsv () {
+  if (props.data.data === null || props.data.data.length === 0 || props.data.data === undefined) {
+    ElMessage.error('无法导出，数据异常')
+    return
+  }
+  const keys : string[] = []
+  const vals : string[] = []
+  for (const key in props.data.data[0]) {
+    keys.push(key)
+    let find = false
+    props.config.kv.forEach(kv => {
+      if (key === kv.key && !find) {
+        vals.push(kv.label)
+        find = true
+      }
+    })
+    if (!find) {
+      vals.push(key)
+    }
+  }
+  let csvContent = vals.join(',') + '\n'
+  for (const obj of props.data.data) {
+    let first = true
+    Object.entries(obj).forEach(
+      ([key, value]) => {
+        if (keys.indexOf(key) > -1) {
+          if (first) {
+            first = false
+          } else {
+            csvContent += ','
+          }
+          csvContent += value.toString()
+        }
+      })
+    csvContent += '\n'
+  }
+  dumpToCSVFile(csvContent, props.config.name + '.csv')
+}
+
+function dumpToCSVFile (content: string, filename: string) {
+  const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' })
+  if (navigator.msSaveBlob) {
+    // In case of IE 10+
+    navigator.msSaveBlob(blob, filename)
+  } else {
+    const link = document.createElement('a')
+    if (link.download !== undefined) {
+      // Browsers that support HTML5 download attribute
+      const url = URL.createObjectURL(blob)
+      link.setAttribute('href', url)
+      link.setAttribute('download', filename)
+      link.style.visibility = 'hidden'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    }
   }
 }
 
