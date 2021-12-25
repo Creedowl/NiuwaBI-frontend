@@ -42,6 +42,18 @@ export interface TableConfig {
   pos: Pos
   kv: Kv[]
 }
+export interface yOption{
+  smooth : boolean
+}
+export interface ChartConfig extends TableConfig{
+  x: string
+  xAxisType: string
+  y: string[]
+  datatype: string[] // such as line/bar ...
+  yDataType: string
+  yExtraOption: yOption[]
+  name: string
+}
 
 export interface ReportConfig {
   id: number
@@ -50,12 +62,12 @@ export interface ReportConfig {
   type: string
   owner: number
   config: {
-    charts: TableConfig[]
+    charts: (TableConfig|ChartConfig)[]
   }
 }
 
 export interface ReportData {
-  chart: TableConfig
+  chart: TableConfig | ChartConfig
   data: object[]
 }
 

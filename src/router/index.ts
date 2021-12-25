@@ -24,6 +24,10 @@ const routes = [
   {
     path: '/workspace/:id',
     component: importComponent('report/Reports')
+  },
+  {
+    path: '/test/echartdemo',
+    component: import('../components/charts/DataChart.vue')
   }
 ]
 

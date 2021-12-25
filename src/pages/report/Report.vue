@@ -64,6 +64,12 @@
               :data="chartData[index]"
               :setting="setting"
             />
+            <data-chart
+              v-if="item.type === 'line' && chartData.length > 0"
+              :config="item"
+              :data="chartData[index]"
+              :setting="setting"
+            />
           </el-card>
         </grid-item>
       </grid-layout>
@@ -82,6 +88,7 @@ import { onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api, { Pos, ReportConfig, ReportData } from '../../api'
 import DataTable from '../../components/charts/DataTable.vue'
+import DataChart from '../../components/charts/DataChart.vue'
 
 const reportID = parseInt(useRoute().params.id as string)
 const config = ref<ReportConfig>()

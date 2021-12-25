@@ -2,7 +2,7 @@ import { createApp } from 'vue'
 import VueAxios from 'vue-axios'
 // @ts-ignore
 import * as VueGridLayout from 'vue-grid-layout'
-
+import * as echarts from 'echarts'
 import api from './api'
 import App from './App.vue'
 import router from './router'
@@ -21,5 +21,5 @@ app.use(VueGridLayout)
 app.use(initAuth())
 app.provide('axios', app.config.globalProperties.axios)
 app.provide('$api', api)
-
+app.config.globalProperties.echarts = echarts
 app.mount('#app')
