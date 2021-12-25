@@ -11,14 +11,23 @@ const features = [
   '万能数据库配置',
   '工作区管理',
   '自定义查询',
-  '报表管理',
-  '报表导出'
+  '报表生成',
+  '报表导出',
+  '图表生成'
 ]
 const workflows = [
   '创建账号',
   '新建工作区，配置数据库连接，测试数据库能否联通',
   '新建报表，输入查询的语句以及',
   '管理报表，导出需要的数据'
+]
+const usages = [
+  '报表',
+  '图表(line、bar)'
+]
+const desc = [
+  '类似Excel，配置想要查询的字段，可以是数据库字段也可以是SQL中的表达式，支持导出，适合以条为单位的数据',
+  '图表，配置字段以及对应的类型自动生成对应的图表，适合时序数据、类别数据(树状图)，也支持多种图表类型混合使用'
 ]
 </script>
 
@@ -68,7 +77,7 @@ const workflows = [
   >
     <h1> 牛蛙BI</h1>
     <p class="left">
-      欢迎使用，牛蛙BI，使用本工具来一键生成报表
+      欢迎使用，牛蛙BI，使用本工具来一键生成报表、图表。
     </p>
     <h2 class="left">
       功能
@@ -92,6 +101,17 @@ const workflows = [
         {{ workflow }}
       </li>
     </ol>
+    <h2 class="left">
+      使用建议
+    </h2>
+    <div
+      v-for="(title,index) in usages"
+      :key="index"
+      class="left"
+    >
+      <h3>{{ title }}</h3>
+      <p>&nbsp;&nbsp;{{ desc[index] }}</p>
+    </div>
   </div>
 </template>
 
