@@ -1,7 +1,7 @@
 <template>
   <div id="report">
     <div
-      v-if="config"
+      v-if="!loading"
       id="grid"
     >
       <div id="operations">
@@ -14,6 +14,12 @@
           </el-button>
         </template>
         <template v-else>
+          <el-button
+            type="primary"
+            @click="setttingVisible = true"
+          >
+            配置
+          </el-button>
           <el-button
             type="success"
             @click="save()"
@@ -62,12 +68,14 @@
               v-if="item.type === 'table' && chartData.length > 0"
               :config="item"
               :data="chartData[index]"
+              :dmf="config.config.dmf"
               :setting="setting"
             />
             <data-chart
               v-if="item.type === 'line' && chartData.length > 0"
-              :config="item"
+              :config="(item as any)"
               :data="chartData[index]"
+              :dmf="config.config.dmf"
               :setting="setting"
             />
           </el-card>
@@ -79,23 +87,300 @@
       :rows="5"
       animated
     />
+    <el-dialog
+      v-model="setttingVisible"
+      title="报表配置"
+      :destroy-on-close="true"
+    >
+      <el-form
+        :model="config"
+        label-width="auto"
+        label-position="left"
+      >
+        <el-form-item
+          label="名称"
+          prop="name"
+          required
+        >
+          <el-input
+            v-model="config.name"
+          />
+        </el-form-item>
+        <el-form-item
+          label="表名"
+          prop="config.dmf.table"
+          required
+        >
+          <el-input
+            v-model="config.config.dmf.table"
+          />
+        </el-form-item>
+        <el-divider>维度</el-divider>
+        <el-form-item
+          v-for="(item, index) in config.config.dmf.dimensions"
+          :key="index"
+          :label="`维度${index}`"
+          required
+        >
+          <el-form-item
+            :prop="`config.dmf.dimensions.${index}.type`"
+            label="维度类型"
+            required
+          >
+            <div class="oneline">
+              <el-select
+                v-model="item.type"
+                placeholder="请选择维度类型"
+              >
+                <el-option
+                  label="普通维度"
+                  value="dimension"
+                />
+                <el-option
+                  label="计算维度"
+                  value="equation_dimension"
+                />
+              </el-select>
+              <el-popconfirm
+                title="确认删除这个维度吗?"
+                @confirm="removeDimension(index)"
+              >
+                <template #reference>
+                  <el-button
+                    type="warning"
+                    size="mini"
+                  >
+                    删除
+                  </el-button>
+                </template>
+              </el-popconfirm>
+            </div>
+          </el-form-item>
+          <el-form-item
+            :prop="`config.dmf.dimensions.${index}.name`"
+            label="字段名"
+            required
+          >
+            <el-input
+              v-model="item.name"
+            />
+          </el-form-item>
+          <el-form-item
+            :prop="`config.dmf.dimensions.${index}.label`"
+            label="标签"
+            required
+          >
+            <el-input
+              v-model="item.label"
+            />
+          </el-form-item>
+          <template v-if="item.type === 'dimension'">
+            <el-form-item
+              :prop="`config.dmf.dimensions.${index}.field`"
+              label="字段"
+              required
+            >
+              <el-input
+                v-model="getDimension(item).field"
+              />
+            </el-form-item>
+          </template>
+          <template v-else-if="item.type === 'equation_dimension'">
+            <el-form-item
+              :prop="`config.dmf.dimensions.${index}.formula`"
+              label="公式"
+              required
+            >
+              <el-input
+                v-model="getEquationDimension(item).formula"
+              />
+            </el-form-item>
+            <el-form-item
+              label="元素"
+              required
+            >
+              <el-form-item
+                v-for="(elem, i) in getEquationDimension(item).elements"
+                :key="i"
+                :label="`元素${i}`"
+                required
+              >
+                <el-input
+                  v-model="getEquationDimension(item).elements[i]"
+                >
+                  <template #append>
+                    <el-button
+                      :icon="Close"
+                      @click="removeElement('equation_dimension', index, i)"
+                    />
+                  </template>
+                </el-input>
+              </el-form-item>
+              <el-button
+                type="primary"
+                size="mini"
+                @click="addElement('equation_dimension', index)"
+              >
+                新增
+              </el-button>
+            </el-form-item>
+          </template>
+        </el-form-item>
+        <el-button
+          type="success"
+          @click="addDimension()"
+        >
+          新增维度
+        </el-button>
+        <el-divider>指标</el-divider>
+        <el-form-item
+          v-for="(item, index) in config.config.dmf.metrics"
+          :key="index"
+          :label="`指标${index}`"
+          required
+        >
+          <el-form-item
+            :prop="`config.dmf.metrics.${index}.type`"
+            label="指标类型"
+            required
+          >
+            <div class="oneline">
+              <el-select
+                v-model="item.type"
+                placeholder="请选择指标类型"
+              >
+                <el-option
+                  label="普通指标"
+                  value="metric"
+                />
+                <el-option
+                  label="计算指标"
+                  value="equation_metric"
+                />
+              </el-select>
+              <el-popconfirm
+                title="确认删除这个指标吗?"
+                @confirm="removeMetric(index)"
+              >
+                <template #reference>
+                  <el-button
+                    type="warning"
+                    size="mini"
+                  >
+                    删除
+                  </el-button>
+                </template>
+              </el-popconfirm>
+            </div>
+          </el-form-item>
+          <el-form-item
+            :prop="`config.dmf.metrics.${index}.name`"
+            label="字段名"
+            required
+          >
+            <el-input
+              v-model="item.name"
+            />
+          </el-form-item>
+          <el-form-item
+            :prop="`config.dmf.metrics.${index}.label`"
+            label="标签"
+            required
+          >
+            <el-input
+              v-model="item.label"
+            />
+          </el-form-item>
+          <template v-if="item.type === 'metric'">
+            <el-form-item
+              :prop="`config.dmf.metrics.${index}.field`"
+              label="字段"
+              required
+            >
+              <el-input
+                v-model="getMetric(item).field"
+              />
+            </el-form-item>
+            <el-form-item
+              :prop="`config.dmf.metrics.${index}.aggr`"
+              label="聚合函数"
+              required
+            >
+              <el-input
+                v-model="getMetric(item).aggr"
+              />
+            </el-form-item>
+          </template>
+          <template v-else-if="item.type === 'equation_metric'">
+            <el-form-item
+              :prop="`config.dmf.metrics.${index}.formula`"
+              label="公式"
+              required
+            >
+              <el-input
+                v-model="getEquationMetric(item).formula"
+              />
+            </el-form-item>
+            <el-form-item
+              label="元素"
+              required
+            >
+              <el-form-item
+                v-for="(elem, i) in getEquationMetric(item).elements"
+                :key="i"
+                :label="`元素${i}`"
+                required
+              >
+                <el-input
+                  v-model="getEquationMetric(item).elements[i]"
+                >
+                  <template #append>
+                    <el-button
+                      :icon="Close"
+                      @click="removeElement('equation_metric', index, i)"
+                    />
+                  </template>
+                </el-input>
+              </el-form-item>
+              <el-button
+                type="primary"
+                size="mini"
+                @click="addElement('equation_metric', index)"
+              >
+                新增
+              </el-button>
+            </el-form-item>
+            <el-button
+              type="success"
+              @click="addMetric()"
+            >
+              新增指标
+            </el-button>
+          </template>
+        </el-form-item>
+      </el-form>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
+/* eslint-disable camelcase */
 import { ElMessage } from 'element-plus'
+import { Close } from '@element-plus/icons'
 import { onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import api, { Pos, ReportConfig, ReportData } from '../../api'
+import api, { dimension, equation_dimension, equation_metric, metric, Pos, ReportConfig, ReportData } from '../../api'
 import DataTable from '../../components/charts/DataTable.vue'
 import DataChart from '../../components/charts/DataChart.vue'
 
 const reportID = parseInt(useRoute().params.id as string)
-const config = ref<ReportConfig>()
+const config = ref({} as ReportConfig)
 const chartData = ref<ReportData[]>([])
 const setting = reactive({
-  edit: true
+  edit: false
 })
+const loading = ref(true)
+const setttingVisible = ref(false)
 const router = useRouter()
 
 const layout = ref([] as Pos[])
@@ -113,6 +398,7 @@ async function getData () {
     console.error(error)
     router.back()
   }
+  loading.value = false
 }
 
 async function save () {
@@ -126,6 +412,75 @@ async function save () {
 }
 
 onMounted(getData)
+
+function addDimension () {
+  config.value.config.dmf.dimensions.push({
+    type: 'dimension',
+    name: '',
+    label: '',
+    field: ''
+  })
+}
+
+function removeDimension (index: number) {
+  config.value.config.dmf.dimensions.splice(index, 1)
+}
+
+function addMetric () {
+  config.value.config.dmf.metrics.push({
+    type: 'metric',
+    name: '',
+    label: '',
+    field: '',
+    aggr: ''
+  })
+}
+
+function removeMetric (index: number) {
+  config.value.config.dmf.metrics.splice(index, 1)
+}
+
+// f**k these shit
+
+function getDimension (dim: dimension | equation_dimension) {
+  return dim as dimension
+}
+
+function getEquationDimension (dim: dimension | equation_dimension) {
+  return dim as equation_dimension
+}
+
+function getMetric (met: metric | equation_metric) {
+  return met as metric
+}
+
+function getEquationMetric (met: metric | equation_metric) {
+  return met as equation_metric
+}
+
+function addElement (type: string, index: number) {
+  if (type === 'equation_dimension') {
+    const elements = (config.value.config.dmf.dimensions[index] as equation_dimension).elements
+    if (elements === undefined) {
+      (config.value.config.dmf.dimensions[index] as equation_dimension).elements = []
+    }
+    (config.value.config.dmf.dimensions[index] as equation_dimension).elements.push('')
+  } else if (type === 'equation_metric') {
+    const elements = (config.value.config.dmf.metrics[index] as equation_metric).elements
+    if (elements === undefined) {
+      (config.value.config.dmf.metrics[index] as equation_metric).elements = []
+    }
+    (config.value.config.dmf.metrics[index] as equation_metric).elements.push('')
+  }
+}
+
+function removeElement (type: string, index: number, i: number) {
+  if (type === 'equation_dimension') {
+    (config.value.config.dmf.dimensions[index] as equation_dimension).elements.splice(i, 1)
+  } else if (type === 'equation_metric') {
+    (config.value.config.dmf.metrics[index] as equation_metric).elements.splice(i, 1)
+  }
+}
 </script>
 
 <style scoped>
@@ -153,5 +508,10 @@ onMounted(getData)
   font-size: large;
   font-weight: bold;
   margin: 20px;
+}
+
+.oneline {
+  display: flex;
+  justify-content: space-evenly;
 }
 </style>

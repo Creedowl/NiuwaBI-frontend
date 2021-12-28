@@ -35,17 +35,30 @@ export interface Kv {
   label: string
 }
 
-export interface TableConfig {
+export interface Filter {
+  field: string
+  op: string
+  value: any
+}
+
+export interface BaseConfig {
   type: string
+  chart_type: string
   sql: string
   name: string
   pos: Pos
   kv: Kv[]
+  fields: string[]
+  filters: Filter[]
 }
-export interface yOption{
-  smooth : boolean
+
+export interface TableConfig extends BaseConfig { }
+
+export interface yOption {
+  smooth: boolean
 }
-export interface ChartConfig extends TableConfig{
+
+export interface ChartConfig extends BaseConfig {
   x: string
   xAxisType: string
   y: string[]
@@ -55,14 +68,51 @@ export interface ChartConfig extends TableConfig{
   name: string
 }
 
+export interface dimension {
+  type: string
+  name: string
+  field: string
+  label: string
+}
+
+export interface equation_dimension {
+  type: string
+  name: string
+  label: string
+  formula: string
+  elements: string[]
+}
+
+export interface metric {
+  type: string
+  name: string
+  field: string
+  aggr: string
+  label: string
+}
+
+export interface equation_metric {
+  type: string
+  name: string
+  label: string
+  formula: string
+  elements: string[]
+}
+
+export interface Dmf {
+  table: string
+  dimensions: (dimension | equation_dimension)[]
+  metrics: (metric | equation_metric)[]
+}
+
 export interface ReportConfig {
   id: number
   workspace_id: number
   name: string
-  type: string
   owner: number
   config: {
-    charts: (TableConfig|ChartConfig)[]
+    charts: (TableConfig | ChartConfig)[]
+    dmf: Dmf
   }
 }
 
@@ -75,7 +125,7 @@ const api = {
   ping (name: string) {
     return axios.get('/ping', { params: { name } })
   },
-  login (userinfo: {username: string, password: string}) {
+  login (userinfo: { username: string, password: string }) {
     return axios.post('/login', userinfo)
   },
   workspace: {
@@ -104,6 +154,9 @@ const api = {
     },
     execute (id: number) {
       return axios.post('/report/execute', { id })
+    },
+    create (config: ReportConfig) {
+      return axios.post('/report/create', config)
     },
     update (config: ReportConfig) {
       return axios.post('/report/update', config)

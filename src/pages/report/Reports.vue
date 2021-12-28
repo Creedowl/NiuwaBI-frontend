@@ -31,11 +31,6 @@
         label="报表"
         width="300"
       />
-      <el-table-column
-        prop="type"
-        label="类型"
-        width="100"
-      />
       <el-table-column label="操作">
         <template #default="scope">
           <el-button
@@ -154,13 +149,13 @@ function create () {
   visible.value = true
 }
 
-async function createReport (c:ReportConfig) {
+async function createReport (c: ReportConfig) {
   try {
     if (c.id === 0) {
-      await api.workspace.create(c)
+      await api.report.create(c)
       ElMessage.success('创建成功')
     } else {
-      await api.workspace.update(c)
+      await api.report.update(c)
       ElMessage.success('更新成功')
     }
     visible.value = false
