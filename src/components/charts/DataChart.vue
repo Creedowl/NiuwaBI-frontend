@@ -260,7 +260,7 @@
 <script setup lang="ts">
 import { onMounted, ref, shallowRef, reactive } from 'vue'
 import * as echarts from 'echarts'
-import type { ChartConfig, Kv, ReportData, TableConfig } from '../../api'
+import type { ChartConfig, Kv, ReportData } from '../../api'
 import { Close } from '@element-plus/icons'
 
 const graphOptions = [
