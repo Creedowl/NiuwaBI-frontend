@@ -143,6 +143,20 @@
         <el-input v-model="form.x" />
       </el-form-item>
       <el-form-item
+        prop="trigger"
+        label="Trigger"
+      >
+        <el-select v-model="form.trigger">
+          <el-option
+            v-for="item2 in triggerOptions"
+            :key="item2"
+            :label="item2"
+            :value="item2"
+          />
+        </el-select>
+      </el-form-item>
+
+      <el-form-item
         label="x轴类型"
         prop="xAxisType"
         required
@@ -266,6 +280,11 @@ import { Close } from '@element-plus/icons'
 const graphOptions = [
   'line', 'bar'
 ]
+
+const triggerOptions = [
+  'item', 'axis'
+]
+
 const props = defineProps<{
   config: ChartConfig;
   data: ReportData;

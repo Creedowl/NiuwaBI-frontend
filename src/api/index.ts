@@ -92,6 +92,7 @@ export interface ChartConfig extends BaseConfig {
   yDataType: string
   yExtraOption: yOption[]
   name: string
+  trigger: string
 }
 
 export interface dimension {
@@ -131,19 +132,22 @@ export interface Dmf {
   metrics: (metric | equation_metric)[]
 }
 
+export interface PieConfig extends TableConfig{
+  data: string[]
+}
 export interface ReportConfig {
   id: number
   workspace_id: number
   name: string
   owner: number
   config: {
-    charts: (TableConfig | ChartConfig)[]
     dmf: Dmf
+    charts: (TableConfig | ChartConfig | PieConfig)[]
   }
 }
 
 export interface ReportData {
-  chart: TableConfig | ChartConfig
+  chart: TableConfig | ChartConfig | PieConfig
   data: object[]
 }
 
