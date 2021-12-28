@@ -78,6 +78,12 @@
               :dmf="config.config.dmf"
               :setting="setting"
             />
+            <pie-chart
+              v-if="item.type === 'pie' && chartData.length > 0"
+              :config="(item as any)"
+              :data="chartData[index]"
+              :setting="setting"
+            />
           </el-card>
         </grid-item>
       </grid-layout>
@@ -372,6 +378,7 @@ import { useRoute, useRouter } from 'vue-router'
 import api, { dimension, equation_dimension, equation_metric, metric, Pos, ReportConfig, ReportData } from '../../api'
 import DataTable from '../../components/charts/DataTable.vue'
 import DataChart from '../../components/charts/DataChart.vue'
+import PieChart from '../../components/charts/PieChart.vue'
 
 const reportID = parseInt(useRoute().params.id as string)
 const config = ref({} as ReportConfig)
