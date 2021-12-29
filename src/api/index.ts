@@ -84,6 +84,13 @@ export interface yOption {
   smooth: boolean
 }
 
+export interface WorkspaceInfo{
+  workspaceName: string
+  reportName: string[]
+}
+export interface UserStatistics{
+  workspaceInfo: WorkspaceInfo[]
+}
 export interface ChartConfig extends BaseConfig {
   x: string
   xAxisType: string
@@ -134,6 +141,11 @@ export interface Dmf {
 
 export interface PieConfig extends TableConfig{
   data: string[]
+  subName : string
+  oneRow : boolean
+  nameField : string
+  valueField : string
+  roseType : boolean
 }
 export interface ReportConfig {
   id: number
@@ -157,6 +169,12 @@ const api = {
   },
   login (userinfo: { username: string, password: string }) {
     return axios.post('/login', userinfo)
+  },
+  reigster (userinfo: {username: string, password :string, nickname:string}) {
+    return axios.post('/register', userinfo)
+  },
+  getStatistics (wrap: {id: number}) {
+    return axios.post('/get_user_info', wrap)
   },
   workspace: {
     getAll (pagination: Pagination) {

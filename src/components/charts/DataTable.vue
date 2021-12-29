@@ -236,7 +236,7 @@
 import { onMounted, reactive, ref } from 'vue'
 import { Close } from '@element-plus/icons'
 import FieldFilters from '../../components/FieldFilters.vue'
-import { Dmf, Kv, ReportData, TableConfig } from '../../api'
+import type { Dmf, Kv, ReportData, TableConfig } from '../../api'
 import { ElMessage } from 'element-plus'
 import * as XLSX from 'xlsx'
 
