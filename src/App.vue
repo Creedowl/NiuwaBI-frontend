@@ -8,7 +8,7 @@
     <el-main>
       <router-view />
     </el-main>
-    <el-footer>Footer</el-footer>
+    <el-footer>NiuWaBI alpha version</el-footer>
   </el-container>
 </template>
 

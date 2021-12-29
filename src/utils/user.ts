@@ -57,6 +57,11 @@ export async function login (username: string, password: string): Promise<User> 
   return user
 }
 
+export async function register (username:string, password:string, nickname:string):Promise<string> {
+  const { data } = await (api.reigster({ username, password, nickname }))
+  return data.message
+}
+
 export function isAuthenticated (): boolean {
   console.log(getUser())
   return getUser() !== null

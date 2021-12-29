@@ -10,8 +10,16 @@ const routes = [
     component: importComponent('HelloWorld')
   },
   {
+    path: '/user',
+    component: importComponent('User')
+  },
+  {
     path: '/login',
     component: importComponent('Login')
+  },
+  {
+    path: '/register',
+    component: importComponent('Register')
   },
   {
     path: '/report/:id',
