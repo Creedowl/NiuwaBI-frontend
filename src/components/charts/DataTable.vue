@@ -3,12 +3,26 @@
     <template #header>
       <div class="card-header">
         <span class="title">{{ config.name }}</span>
-        <el-button
-          v-if="setting.edit"
-          @click="dialogVisible = true"
-        >
-          编辑
-        </el-button>
+        <div v-if="setting.edit">
+          <el-popconfirm
+            title="确认删除这个图表吗?"
+            @confirm="emit('remove')"
+          >
+            <template #reference>
+              <el-button
+                type="danger"
+              >
+                删除
+              </el-button>
+            </template>
+          </el-popconfirm>
+          <el-button
+
+            @click="dialogVisible = true"
+          >
+            编辑
+          </el-button>
+        </div>
         <div v-else>
           <el-button
             type="primary"
@@ -35,8 +49,8 @@
       </div>
     </template>
     <el-table
-      v-if="header.length > 0"
-      :data="data.data"
+      v-if="header.length > 0 && data"
+      :data="data?.data"
       style="width: 100%"
     >
       <el-table-column
@@ -228,7 +242,7 @@ import * as XLSX from 'xlsx'
 
 const props = defineProps<{
   config: TableConfig;
-  data: ReportData;
+  data: ReportData | null;
   dmf?: Dmf;
   setting: any;
 }>()
@@ -245,8 +259,10 @@ const kv = reactive({
   label: ''
 })
 
+const emit = defineEmits(['remove'])
+
 onMounted(() => {
-  if (props.data.data.length > 0) {
+  if (props.data && props.data.data.length > 0) {
     for (const key in props.data.data[0]) {
       header.value.push(key)
     }

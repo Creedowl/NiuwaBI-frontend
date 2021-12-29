@@ -52,7 +52,33 @@ export interface BaseConfig {
   filters: Filter[]
 }
 
-export interface TableConfig extends BaseConfig { }
+export class TableConfig implements BaseConfig {
+  type: string
+  chart_type: string
+  sql: string
+  name: string
+  pos: Pos
+  kv: Kv[]
+  fields: string[]
+  filters: Filter[]
+
+  constructor (x: number, y: number) {
+    this.type = 'table'
+    this.chart_type = 'sql'
+    this.sql = ''
+    this.name = ''
+    this.pos = {
+      x: x,
+      y: y,
+      w: 10,
+      h: 10,
+      i: Math.random().toString(36).substring(2)
+    }
+    this.kv = []
+    this.fields = []
+    this.filters = []
+  }
+}
 
 export interface yOption {
   smooth: boolean
@@ -160,6 +186,9 @@ const api = {
     },
     update (config: ReportConfig) {
       return axios.post('/report/update', config)
+    },
+    delete (id: number) {
+      return axios.post('/report/remove', { id })
     }
   }
 }

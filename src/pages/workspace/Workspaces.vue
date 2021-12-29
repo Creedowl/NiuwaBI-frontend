@@ -81,7 +81,7 @@
 
 <script setup lang="ts">
 import { ElMessage } from 'element-plus'
-import { onMounted, ref } from 'vue'
+import { getCurrentInstance, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import api, { WorkspaceConfig } from '../../api'
 import WorkspaceConfigDialog from '../../components/WorkspaceConfigDialog.vue'
@@ -97,6 +97,7 @@ const visible = ref(false)
 const config = ref<WorkspaceConfig>()
 
 const router = useRouter()
+const path = getCurrentInstance()?.proxy?.$Path
 
 const getData = async () => {
   try {
@@ -115,6 +116,9 @@ onMounted(getData)
 
 function handleView (index: any, row: WorkspaceConfig) {
   console.log(index, row)
+  console.log('path', path)
+  path.workspace.id = row.id
+  path.workspace.name = row.name
   router.push(`/workspace/${row.id}`)
 }
 

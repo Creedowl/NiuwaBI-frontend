@@ -1,5 +1,16 @@
 <template>
   <div id="report">
+    <el-breadcrumb separator="/">
+      <el-breadcrumb-item :to="'/workspace'">
+        工作区列表
+      </el-breadcrumb-item>
+      <el-breadcrumb-item :to="`/workspace/${path.workspace.id}`">
+        {{ path.workspace.name }}
+      </el-breadcrumb-item>
+      <el-breadcrumb-item :to="`/report/${path.report.id}`">
+        {{ path.report.name }}
+      </el-breadcrumb-item>
+    </el-breadcrumb>
     <div
       v-if="!loading"
       id="grid"
@@ -14,6 +25,30 @@
           </el-button>
         </template>
         <template v-else>
+          <el-dropdown
+            style="padding-right: 10px"
+            @command="addChart"
+          >
+            <el-button type="primary">
+              新增图表
+              <el-icon class="el-icon--right">
+                <arrow-down />
+              </el-icon>
+            </el-button>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="table">
+                  表格
+                </el-dropdown-item>
+                <el-dropdown-item command="line">
+                  折线图
+                </el-dropdown-item>
+                <el-dropdown-item command="pie">
+                  饼图
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
           <el-button
             type="primary"
             @click="setttingVisible = true"
@@ -38,6 +73,8 @@
         {{ config.name }}
       </div>
       <grid-layout
+        v-if="layout.length > 0"
+        :key="updateKey"
         v-model:layout="layout"
         :col-num="12"
         :row-height="30"
@@ -65,14 +102,15 @@
             :body-style="{ padding: '0', height: '100%' }"
           >
             <data-table
-              v-if="item.type === 'table' && chartData.length > 0"
+              v-if="item.type === 'table'"
               :config="item"
-              :data="chartData[index]"
+              :data="chartData[index] || null"
               :dmf="config.config.dmf"
               :setting="setting"
+              @remove="removeChart"
             />
             <data-chart
-              v-if="item.type === 'line' && chartData.length > 0"
+              v-if="item.type === 'line'"
               :config="(item as any)"
               :data="chartData[index]"
               :dmf="config.config.dmf"
@@ -81,6 +119,10 @@
           </el-card>
         </grid-item>
       </grid-layout>
+      <el-empty
+        v-else
+        description="报表为空"
+      />
     </div>
     <el-skeleton
       v-else
@@ -350,14 +392,14 @@
                 新增
               </el-button>
             </el-form-item>
-            <el-button
-              type="success"
-              @click="addMetric()"
-            >
-              新增指标
-            </el-button>
           </template>
         </el-form-item>
+        <el-button
+          type="success"
+          @click="addMetric()"
+        >
+          新增指标
+        </el-button>
       </el-form>
     </el-dialog>
   </div>
@@ -366,10 +408,10 @@
 <script setup lang="ts">
 /* eslint-disable camelcase */
 import { ElMessage } from 'element-plus'
-import { Close } from '@element-plus/icons'
-import { onMounted, reactive, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import api, { dimension, equation_dimension, equation_metric, metric, Pos, ReportConfig, ReportData } from '../../api'
+import { Close, ArrowDown } from '@element-plus/icons'
+import { getCurrentInstance, onMounted, reactive, ref } from 'vue'
+import { useRoute } from 'vue-router'
+import api, { dimension, equation_dimension, equation_metric, metric, Pos, ReportConfig, ReportData, TableConfig } from '../../api'
 import DataTable from '../../components/charts/DataTable.vue'
 import DataChart from '../../components/charts/DataChart.vue'
 
@@ -381,22 +423,34 @@ const setting = reactive({
 })
 const loading = ref(true)
 const setttingVisible = ref(false)
-const router = useRouter()
+const updateKey = ref(0)
 
 const layout = ref([] as Pos[])
+const path = getCurrentInstance()?.proxy?.$Path
 
 async function getData () {
   try {
     const { data } = await api.report.get(reportID)
     config.value = data.data as ReportConfig
-    for (const i of config.value?.config.charts) {
+    if (config.value.config.charts === null) {
+      config.value.config.charts = []
+    }
+    if (config.value.config.dmf.dimensions === null) {
+      config.value.config.dmf.dimensions = []
+    }
+    if (config.value.config.dmf.metrics === null) {
+      config.value.config.dmf.metrics = []
+    }
+    layout.value = []
+    for (const i of config.value.config.charts) {
       layout.value.push(i.pos)
     }
-    const resp = await api.report.execute(reportID)
-    chartData.value = resp.data.data
+    if (config.value.config.charts.length > 0) {
+      const resp = await api.report.execute(reportID)
+      chartData.value = resp.data.data
+    }
   } catch (error) {
     console.error(error)
-    router.back()
   }
   loading.value = false
 }
@@ -405,6 +459,9 @@ async function save () {
   try {
     await api.report.update(config.value as ReportConfig)
     ElMessage.success('更新成功')
+    setting.edit = false
+    await getData()
+    updateKey.value += 1
   } catch (error) {
     console.error(error)
     ElMessage.error('保存失败')
@@ -480,6 +537,32 @@ function removeElement (type: string, index: number, i: number) {
   } else if (type === 'equation_metric') {
     (config.value.config.dmf.metrics[index] as equation_metric).elements.splice(i, 1)
   }
+}
+
+function addChart (type: string) {
+  switch (type) {
+    case 'table': {
+      const t = ref(new TableConfig((layout.value.length * 2) % 12, layout.value.length + 12))
+      config.value.config.charts.push(t.value)
+      layout.value.push(t.value.pos)
+      break
+    }
+    case 'line':
+
+      break
+    case 'pie':
+
+      break
+
+    default:
+      ElMessage.error(`图表类型 ${type} 不存在`)
+  }
+}
+
+function removeChart (val: string) {
+  const index = layout.value.map(item => item.i).indexOf(val)
+  layout.value.splice(index, 1)
+  config.value.config.charts.splice(index, 1)
 }
 </script>
 
