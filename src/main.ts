@@ -15,6 +15,23 @@ import 'element-plus/es/components/message/style/css'
 
 const app = createApp(App)
 
+app.config.globalProperties.$Path = {
+  workspace: {
+    id: 0,
+    name: ''
+  },
+  report: {
+    id: 0,
+    name: ''
+  }
+}
+
+declare module '@vue/runtime-core' {
+  export interface ComponentCustomProperties {
+    $Path: any
+  }
+}
+
 app.use(router)
 app.use(VueAxios, axios)
 app.use(VueGridLayout)

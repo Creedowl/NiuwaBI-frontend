@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { logout } from '../utils/user'
 
 const msg = ref('2333')
 

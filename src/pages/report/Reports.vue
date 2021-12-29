@@ -4,14 +4,14 @@
       <el-breadcrumb-item :to="'/workspace'">
         工作区列表
       </el-breadcrumb-item>
-      <el-breadcrumb-item :to="`/workspace/${workspaceID}`">
-        {{ workspaceID }}
+      <el-breadcrumb-item :to="`/workspace/${path.workspace.id}`">
+        {{ path.workspace.name }}
       </el-breadcrumb-item>
     </el-breadcrumb>
     <div id="operations">
       <el-button
         type="primary"
-        @click="create()"
+        @click="createReport()"
       >
         新建
       </el-button>
@@ -40,14 +40,6 @@
           >
             查看
           </el-button>
-          <el-button
-            size="mini"
-            type="warning"
-            @click="handleEdit(scope.$index, scope.row)"
-          >
-            编辑
-          </el-button>
-
           <el-popconfirm
             title="确认要删除这个报表吗？"
             @confirm="handleDelete(scope.$index, scope.row)"
@@ -78,9 +70,10 @@
 
 <script setup lang="ts">
 import { ElMessage } from 'element-plus'
-import { onMounted, ref } from 'vue'
+import { getCurrentInstance, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import api, { ReportConfig } from '../../api'
+import api, { Dmf, ReportConfig } from '../../api'
+import { getUser } from '../../utils/user'
 
 const workspaceID = parseInt(useRoute().params.id as string)
 const tableData = ref([])
@@ -90,12 +83,14 @@ const pagination = ref({
   page_size: 30,
   total: 0
 })
-const visible = ref(false)
-const config = ref<ReportConfig>()
+// const visible = ref(false)
+// const config = ref<ReportConfig>()
 
 const router = useRouter()
+const path = getCurrentInstance()?.proxy?.$Path
 
 const getData = async () => {
+  console.log(path)
   try {
     const resp = (await api.report.getAll(pagination.value, workspaceID)).data
     tableData.value = resp.data.data
@@ -112,19 +107,15 @@ onMounted(getData)
 
 function handleView (index: any, row: ReportConfig) {
   console.log(index, row)
+  path.report.id = row.id
+  path.report.name = row.name
   router.push(`/report/${row.id}`)
-}
-
-function handleEdit (index: any, row: ReportConfig) {
-  console.log(index, row)
-  config.value = row
-  visible.value = true
 }
 
 async function handleDelete (index: any, row: ReportConfig) {
   console.log(index, row)
   try {
-    await api.workspace.delete(row.id)
+    await api.report.delete(row.id)
     ElMessage.success('删除成功')
     await getData()
   } catch (error) {
@@ -144,24 +135,22 @@ async function handleCurrentChange (val: number) {
   loading.value = false
 }
 
-function create () {
-  config.value = undefined
-  visible.value = true
-}
-
-async function createReport (c: ReportConfig) {
+async function createReport () {
   try {
-    if (c.id === 0) {
-      await api.report.create(c)
-      ElMessage.success('创建成功')
-    } else {
-      await api.report.update(c)
-      ElMessage.success('更新成功')
-    }
-    visible.value = false
-    await getData()
+    const { data } = await api.report.create({
+      id: 0,
+      workspace_id: workspaceID,
+      name: '新建报表',
+      owner: getUser()?.id || 0,
+      config: {
+        charts: [],
+        dmf: {} as Dmf
+      }
+    })
+    ElMessage.success('创建成功')
+    router.push(`/report/${data.data.id}`)
   } catch (error) {
-    ElMessage.error('保存失败')
+    ElMessage.error('创建失败')
     console.error(error)
   }
 }
