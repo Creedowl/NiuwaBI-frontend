@@ -13,7 +13,8 @@ const features = [
   '自定义查询',
   '报表生成',
   '报表导出',
-  '图表生成'
+  '图表生成',
+  'DMF支持'
 ]
 const workflows = [
   '创建账号',

@@ -171,7 +171,7 @@
         <el-input v-model="form.yDataType" />
       </el-form-item>
       <!-- Yaxis Datas-->
-      <h4>展示数据配置(Y轴)</h4>
+      <h3>展示数据配置(Y轴)</h3>
       <!-- FIXME -->
       <el-form-item
         v-for="(item,index) in form.y"
@@ -272,9 +272,9 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, shallowRef, reactive } from 'vue'
+import { onMounted, ref, shallowRef, reactive, nextTick } from 'vue'
 import * as echarts from 'echarts'
-import type { ChartConfig, Kv, ReportData } from '../../api'
+import type { Dmf, ChartConfig, Kv, ReportData } from '../../api'
 import { Close } from '@element-plus/icons'
 
 const graphOptions = [
@@ -289,6 +289,7 @@ const props = defineProps<{
   config: ChartConfig;
   data: ReportData;
   setting: any;
+  dmf?: Dmf;
 }>()
 
 const form = ref(props.config)
@@ -351,8 +352,11 @@ onMounted(() => {
     }
   }
   // 绘制图表
-  myCharts.value = echarts.init(myChart.value!)
-  myCharts.value.setOption(props.data.data)
+  // FIXME
+  setTimeout(() => {
+    myCharts.value = echarts.init(myChart.value!)
+    myCharts.value.setOption(props.data.data)
+  }, 1000)
 })
 </script>
 

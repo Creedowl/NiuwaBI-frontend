@@ -73,15 +73,16 @@
             />
             <data-chart
               v-if="item.type === 'line' && chartData.length > 0"
-              :config="(item as any)"
+              :config="item"
               :data="chartData[index]"
               :dmf="config.config.dmf"
               :setting="setting"
             />
             <pie-chart
               v-if="item.type === 'pie' && chartData.length > 0"
-              :config="(item as any)"
+              :config="item"
               :data="chartData[index]"
+              :dmf="config.config.dmf"
               :setting="setting"
             />
           </el-card>
