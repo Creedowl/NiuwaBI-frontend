@@ -397,6 +397,7 @@ const yCreation = reactive({
 function removeY (index: number) {
   form.value.y.splice(index, 1)
   form.value.datatype.splice(index, 1)
+  form.value.yExtraOption.splice(index, 1)
 }
 
 function addKv () {
