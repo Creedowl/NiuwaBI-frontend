@@ -6,12 +6,26 @@
     <template #header>
       <div class="card-header">
         <span class="title">{{ config.name }}</span>
-        <el-button
-          v-if="setting.edit"
-          @click="dialogVisible = true"
-        >
-          编辑
-        </el-button>
+        <div v-if="setting.edit">
+          <el-popconfirm
+            title="确认删除这个图表吗?"
+            @confirm="emit('remove',form.pos.i)"
+          >
+            <template #reference>
+              <el-button
+                type="danger"
+              >
+                删除
+              </el-button>
+            </template>
+          </el-popconfirm>
+          <el-button
+            v-if="setting.edit"
+            @click="dialogVisible = true"
+          >
+            编辑
+          </el-button>
+        </div>
       </div>
     </template>
     <div
@@ -296,6 +310,8 @@ const form = ref(props.config)
 const myChart = shallowRef<HTMLElement>() // 也可以用const myChart = ref<any>();
 const myCharts = shallowRef<any>()
 
+const emit = defineEmits(['remove'])
+
 const header = ref([] as string[])
 const labels = ref({} as any)
 const dialogVisible = ref(false)
@@ -341,22 +357,24 @@ function removeKv (item: Kv) {
 }
 
 onMounted(() => {
-  if (props.data.data.length > 0) {
+  if (props.data && props.data.data.length > 0) {
     for (const key in props.data.data[0]) {
       header.value.push(key)
     }
   }
-  if (props.config.kv.length > 0) {
+  if (props.data && props.config.kv.length > 0) {
     for (const item of props.config.kv) {
       labels.value[item.key] = item.label
     }
   }
   // 绘制图表
   // FIXME
-  setTimeout(() => {
-    myCharts.value = echarts.init(myChart.value!)
-    myCharts.value.setOption(props.data.data)
-  }, 1000)
+  if (props.data) {
+    setTimeout(() => {
+      myCharts.value = echarts.init(myChart.value!)
+      myCharts.value.setOption(props.data.data)
+    }, 1000)
+  }
 })
 </script>
 

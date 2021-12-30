@@ -66,7 +66,7 @@ export class TableConfig implements BaseConfig {
     this.type = 'table'
     this.chart_type = 'sql'
     this.sql = ''
-    this.name = ''
+    this.name = '普通报表'
     this.pos = {
       x: x,
       y: y,
@@ -91,7 +91,7 @@ export interface WorkspaceInfo{
 export interface UserStatistics{
   workspaceInfo: WorkspaceInfo[]
 }
-export interface ChartConfig extends BaseConfig {
+export class ChartConfig extends TableConfig {
   x: string
   xAxisType: string
   y: string[]
@@ -100,6 +100,18 @@ export interface ChartConfig extends BaseConfig {
   yExtraOption: yOption[]
   name: string
   trigger: string
+  constructor (x :number, y:number) {
+    super(x, y)
+    this.type = 'line'
+    this.datatype = []
+    this.x = ''
+    this.y = []
+    this.xAxisType = 'category'
+    this.yDataType = 'value'
+    this.yExtraOption = []
+    this.name = '折线/柱状图'
+    this.trigger = 'axis'
+  }
 }
 
 export interface dimension {
@@ -139,13 +151,24 @@ export interface Dmf {
   metrics: (metric | equation_metric)[]
 }
 
-export interface PieConfig extends TableConfig{
+export class PieConfig extends TableConfig {
   data: string[]
   subName : string
   oneRow : boolean
   nameField : string
   valueField : string
   roseType : boolean
+  constructor (x:number, y:number) {
+    super(x, y)
+    this.type = 'pie'
+    this.data = []
+    this.name = '饼图'
+    this.subName = ''
+    this.oneRow = false
+    this.nameField = ''
+    this.valueField = ''
+    this.roseType = false
+  }
 }
 export interface ReportConfig {
   id: number

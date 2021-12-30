@@ -112,16 +112,18 @@
             <data-chart
               v-if="item.type === 'line'"
               :config="(item as any)"
-              :data="chartData[index]"
+              :data="chartData[index] || null"
               :dmf="config.config.dmf"
               :setting="setting"
+              @remove="removeChart"
             />
             <pie-chart
-              v-if="item.type === 'pie' && chartData.length > 0"
-              :config="item"
-              :data="chartData[index]"
+              v-if="item.type === 'pie'"
+              :config="(item as any)"
+              :data="chartData[index] || null"
               :dmf="config.config.dmf"
               :setting="setting"
+              @remove="removeChart"
             />
           </el-card>
         </grid-item>
@@ -196,6 +198,7 @@
               >
                 <template #reference>
                   <el-button
+                    style="margin-left:5px"
                     type="warning"
                     size="mini"
                   >
@@ -313,6 +316,7 @@
               >
                 <template #reference>
                   <el-button
+                    style="margin-left:5px"
                     type="warning"
                     size="mini"
                   >
@@ -392,7 +396,9 @@
                 </el-input>
               </el-form-item>
               <el-button
+                plain
                 type="primary"
+                style="float: left"
                 size="mini"
                 @click="addElement('equation_metric', index)"
               >
@@ -418,7 +424,7 @@ import { ElMessage } from 'element-plus'
 import { Close, ArrowDown } from '@element-plus/icons'
 import { getCurrentInstance, onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import api, { dimension, equation_dimension, equation_metric, metric, Pos, ReportConfig, ReportData, TableConfig } from '../../api'
+import api, { ChartConfig, dimension, equation_dimension, equation_metric, metric, PieConfig, Pos, ReportConfig, ReportData, TableConfig } from '../../api'
 import DataTable from '../../components/charts/DataTable.vue'
 import DataChart from '../../components/charts/DataChart.vue'
 import PieChart from '../../components/charts/PieChart.vue'
@@ -555,20 +561,33 @@ function addChart (type: string) {
       layout.value.push(t.value.pos)
       break
     }
-    case 'line':
-
+    case 'line': {
+      const t = ref(new ChartConfig((layout.value.length * 2) % 12, layout.value.length + 12))
+      config.value.config.charts.push(t.value)
+      layout.value.push(t.value.pos)
       break
-    case 'pie':
-
+    }
+    case 'pie': {
+      const t = ref(new PieConfig((layout.value.length * 2) % 12, layout.value.length + 12))
+      config.value.config.charts.push(t.value)
+      layout.value.push(t.value.pos)
       break
-
-    default:
+    }
+    default: {
       ElMessage.error(`图表类型 ${type} 不存在`)
+      return
+    }
   }
+  ElMessage.success('新建成功')
 }
 
 function removeChart (val: string) {
   const index = layout.value.map(item => item.i).indexOf(val)
+  if (index === -1) {
+    ElMessage.error('数据错误，无法删除')
+    return
+  }
+  ElMessage.success('删除报表' + index + '成功')
   layout.value.splice(index, 1)
   config.value.config.charts.splice(index, 1)
 }
@@ -603,6 +622,7 @@ function removeChart (val: string) {
 
 .oneline {
   display: flex;
+  float: left;
   justify-content: space-evenly;
 }
 </style>

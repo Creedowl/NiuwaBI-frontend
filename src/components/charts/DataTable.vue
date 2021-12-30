@@ -6,7 +6,7 @@
         <div v-if="setting.edit">
           <el-popconfirm
             title="确认删除这个图表吗?"
-            @confirm="emit('remove')"
+            @confirm="emit('remove',form.pos.i)"
           >
             <template #reference>
               <el-button
