@@ -55,6 +55,27 @@
           disabled
         />
       </el-form-item>
+
+      <el-form-item
+        label="图表类型"
+        prop="chart_type"
+        required
+      >
+        <el-select
+          v-model="form.chart_type"
+          placeholder="请选择图表数据类型"
+        >
+          <el-option
+            label="Sql"
+            value="sql"
+          />
+          <el-option
+            label="字段配置"
+            value="dmf"
+          />
+        </el-select>
+      </el-form-item>
+
       <el-form-item
         label="名称"
         prop="name"
@@ -70,6 +91,7 @@
         <el-input v-model="form.subName" />
       </el-form-item>
       <el-form-item
+        v-if="form.chart_type === 'sql'"
         label="Sql"
         prop="sql"
         required
@@ -78,6 +100,42 @@
           v-model="form.sql"
           autosize
         />
+      </el-form-item>
+      <el-form-item
+        v-else
+        label="字段"
+        prop="fields"
+        required
+      >
+        <el-select
+          v-model="form.fields"
+          multiple
+          collapse-tags
+          placeholder="选择字段"
+        >
+          <el-option-group
+            key="dimension"
+            label="维度"
+          >
+            <el-option
+              v-for="item in dmf_?.dimensions"
+              :key="item.name"
+              :label="item.label"
+              :value="item.name"
+            />
+          </el-option-group>
+          <el-option-group
+            key="metric"
+            label="指标"
+          >
+            <el-option
+              v-for="item in dmf_?.metrics"
+              :key="item.name"
+              :label="item.label"
+              :value="item.name"
+            />
+          </el-option-group>
+        </el-select>
       </el-form-item>
       <el-divider />
       <el-form-item
@@ -103,7 +161,7 @@
       </el-form-item>
 
       <!-- KV BEGIN -->
-      <template v-if="form.oneRow === true">
+      <template v-if="form.oneRow === true && form.chart_type === 'sql'">
         <h4>KV字段配置</h4>
         <el-form-item
           v-for="(item, index) in form.kv"
@@ -171,6 +229,12 @@
         </el-popover>
         <el-divider />
       </template>
+
+      <field-filters
+        v-if="form.chart_type==='dmf'"
+        :config="config"
+        :dmf="dmf"
+      />
 
       <template v-if="form.oneRow === true">
         <h4>单列数据配置</h4>
@@ -260,6 +324,7 @@ const emit = defineEmits(['remove'])
 
 const kvVisible = ref(false)
 const dialogVisible = ref(false)
+const dmf_ = ref(props.dmf)
 const form = ref(props.config)
 const myChart = shallowRef<HTMLElement>()
 const myCharts = shallowRef<any>()

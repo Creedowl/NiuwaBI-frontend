@@ -55,6 +55,27 @@
           disabled
         />
       </el-form-item>
+
+      <el-form-item
+        label="图表类型"
+        prop="chart_type"
+        required
+      >
+        <el-select
+          v-model="form.chart_type"
+          placeholder="请选择图表数据类型"
+        >
+          <el-option
+            label="Sql"
+            value="sql"
+          />
+          <el-option
+            label="字段配置"
+            value="dmf"
+          />
+        </el-select>
+      </el-form-item>
+
       <el-form-item
         label="名称"
         prop="name"
@@ -63,6 +84,7 @@
         <el-input v-model="form.name" />
       </el-form-item>
       <el-form-item
+        v-if="form.chart_type === 'sql'"
         label="Sql"
         prop="sql"
         required
@@ -72,72 +94,116 @@
           autosize
         />
       </el-form-item>
-      <el-divider />
 
       <el-form-item
-        v-for="(item, index) in form.kv"
-        :key="item.key"
-        :label="item.key"
-        :prop="`kv.${index}.key`"
+        v-else
+        label="字段"
+        prop="fields"
         required
       >
-        <el-input
-          v-model="item.label"
-          autosize
+        <el-select
+          v-model="form.fields"
+          multiple
+          collapse-tags
+          placeholder="选择字段"
         >
-          <template #append>
-            <el-button
-              :icon="Close"
-              @click="removeKv(item)"
+          <el-option-group
+            key="dimension"
+            label="维度"
+          >
+            <el-option
+              v-for="item in dmf_?.dimensions"
+              :key="item.name"
+              :label="item.label"
+              :value="item.name"
             />
-          </template>
-        </el-input>
+          </el-option-group>
+          <el-option-group
+            key="metric"
+            label="指标"
+          >
+            <el-option
+              v-for="item in dmf_?.metrics"
+              :key="item.name"
+              :label="item.label"
+              :value="item.name"
+            />
+          </el-option-group>
+        </el-select>
       </el-form-item>
-      <el-popover
-        v-model:visible="kvVisible"
-        placement="top"
-        :width="160"
-      >
-        <el-form
-          ref="kvRef"
-          :model="kv"
-          label-position="left"
+
+      <el-divider />
+      <template v-if="form.chart_type === 'sql'">
+        <el-form-item
+          v-for="(item, index) in form.kv"
+          :key="item.key"
+          :label="item.key"
+          :prop="`kv.${index}.key`"
+          required
         >
-          <el-form-item
-            label="Key"
-            prop="key"
-            required
+          <el-input
+            v-model="item.label"
+            autosize
           >
-            <el-input v-model="kv.key" />
-          </el-form-item>
-          <el-form-item
-            label="标签"
-            prop="label"
-            required
+            <template #append>
+              <el-button
+                :icon="Close"
+                @click="removeKv(item)"
+              />
+            </template>
+          </el-input>
+        </el-form-item>
+        <el-popover
+          v-model:visible="kvVisible"
+          placement="top"
+          :width="160"
+        >
+          <el-form
+            ref="kvRef"
+            :model="kv"
+            label-position="left"
           >
-            <el-input v-model="kv.label" />
-          </el-form-item>
-        </el-form>
-        <el-button
-          size="mini"
-          type="text"
-          @click="kvVisible = false"
-        >
-          取消
-        </el-button>
-        <el-button
-          type="primary"
-          size="mini"
-          @click="addKv()"
-        >
-          添加
-        </el-button>
-        <template #reference>
-          <el-button type="primary">
-            新增
+            <el-form-item
+              label="Key"
+              prop="key"
+              required
+            >
+              <el-input v-model="kv.key" />
+            </el-form-item>
+            <el-form-item
+              label="标签"
+              prop="label"
+              required
+            >
+              <el-input v-model="kv.label" />
+            </el-form-item>
+          </el-form>
+          <el-button
+            size="mini"
+            type="text"
+            @click="kvVisible = false"
+          >
+            取消
           </el-button>
-        </template>
-      </el-popover>
+          <el-button
+            type="primary"
+            size="mini"
+            @click="addKv()"
+          >
+            添加
+          </el-button>
+          <template #reference>
+            <el-button type="primary">
+              新增
+            </el-button>
+          </template>
+        </el-popover>
+      </template>
+      <field-filters
+        v-else
+        :config="config"
+        :dmf="dmf"
+      />
       <el-divider />
       <h3>
         图表字段配置
@@ -309,6 +375,7 @@ const props = defineProps<{
 const form = ref(props.config)
 const myChart = shallowRef<HTMLElement>() // 也可以用const myChart = ref<any>();
 const myCharts = shallowRef<any>()
+const dmf_ = ref(props.dmf)
 
 const emit = defineEmits(['remove'])
 
